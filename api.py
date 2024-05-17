@@ -1,15 +1,21 @@
-import numpy as np
+import os
+import time
 from fastapi import FastAPI, Request, HTTPException
 from pymilvus.model.hybrid import BGEM3EmbeddingFunction
+from pymilvus import MilvusClient
 
 import utils
+
+device = os.environ.get('DEVICE', 'cpu')
+milvus_uri = os.environ.get('MILVUS_URI', "http://192.168.89.129:19530")
+name_list = os.environ.get("NAME_LIST", ["command", "url", "payload"])
 
 app = FastAPI()
 
 bge_m3_ef = BGEM3EmbeddingFunction(
     model_name = 'bge-m3',
-    device = 'cpu', # Specify the device to use, e.g., 'cpu' or 'cuda:0'
-    use_fp16 = False # Specify whether to use fp16. Set to `False` if `device` is `cpu`.
+    device = device, # Specify the device to use, e.g., 'cpu' or 'cuda:0'
+    use_fp16 = (lambda d: d != 'cpu')(device) # Specify whether to use fp16. Set to `False` if `device` is `cpu`.
 )
 
 @app.post("/embeddings")
@@ -18,7 +24,33 @@ async def generate_embeddings(request: Request):
         json_post = await request.json()
         strings = json_post["strings"]
         embeddings = utils.get_embedding(bge_m3_ef, strings)
-        embeddings = np.array(embeddings).tolist()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"vectors": embeddings}
+
+client = MilvusClient(milvus_uri)
+utils.create_collection(client, name_list)
+
+@app.post("/insert")
+async def insert(request: Request):
+    try:
+        json_post = await request.json()
+        collention_name = json_post['type']
+        string = json_post["string"]
+        account = json_post["account"]
+        label = json_post["label"]
+        vector = utils.get_embedding(bge_m3_ef, [string])[0]
+            
+        client.insert(
+            collection_name = collention_name,
+            data = {
+                'string': string,
+                'vector': vector,
+                'account': account,
+                'label': label,
+                'time': int(time.time())
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {'msg': 'ok'}
