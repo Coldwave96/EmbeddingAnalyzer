@@ -29,7 +29,7 @@ async def generate_embeddings(request: Request):
     return {"vectors": embeddings}
 
 client = MilvusClient(milvus_uri)
-utils.create_collection(client, name_list)
+utils.init_collection(client, name_list)
 
 @app.post("/insert")
 async def insert(request: Request):
@@ -41,7 +41,7 @@ async def insert(request: Request):
         label = json_post["label"]
         vector = utils.get_embedding(bge_m3_ef, [string])[0]
             
-        client.insert(
+        res = client.insert(
             collection_name = collention_name,
             data = {
                 'string': string,
@@ -51,6 +51,8 @@ async def insert(request: Request):
                 'time': int(time.time())
             }
         )
+        ids = str(res['ids'][0])
+        client.refresh_load(collection_name=collention_name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    return {'msg': 'ok'}
+    return {'ids': ids}

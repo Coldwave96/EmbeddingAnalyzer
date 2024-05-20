@@ -8,7 +8,7 @@ def get_embedding(model, texts: List[str]):
     embeddings = np.array(text_embeddings_dense).tolist()
     return embeddings
 
-def create_collection(milvus_client, name_list):
+def init_collection(milvus_client, name_list):
     for collection_name in name_list:
         if not milvus_client.has_collection(collection_name):
             schema = MilvusClient.create_schema(auto_id=True, enable_dynamic_field=False)
@@ -20,3 +20,14 @@ def create_collection(milvus_client, name_list):
             schema.add_field(field_name="time", datatype=DataType.INT64)
 
             milvus_client.create_collection(collection_name=collection_name, schema=schema)
+
+            index_params = milvus_client.prepare_index_params()
+            index_params.add_index(
+                field_name = "vector", 
+                index_type = "IVF_FLAT",
+                metric_type = "COSINE",
+                params = {"nlist": 1024}
+            )
+            milvus_client.create_index(collection_name=collection_name, index_params=index_params)
+
+        milvus_client.load_collection(collection_name=collection_name)
