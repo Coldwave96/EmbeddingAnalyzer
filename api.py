@@ -35,7 +35,7 @@ utils.init_collection(client, name_list)
 async def insert(request: Request):
     try:
         json_post = await request.json()
-        collention_name = json_post['type']
+        collention_name = json_post["type"]
         string = json_post["string"]
         account = json_post["account"]
         label = json_post["label"]
@@ -56,3 +56,28 @@ async def insert(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {'ids': ids}
+
+@app.post("/search")
+async def search(request: Request):
+    try:
+        json_post = await request.json()
+        collection_name = json_post["type"]
+        strings = json_post["strings"]
+        limit = json_post["limit"]
+        vector = utils.get_embedding(bge_m3_ef, strings)
+
+        search_params = {
+            "metric_type": "COSINE",
+            "params": {}
+        }
+
+        res = client.search(
+            collection_name = collection_name,
+            data = vector,
+            limit = limit,
+            output_fields = ['id', 'string', 'account', 'label', 'time'],
+            search_params = search_params
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return res
