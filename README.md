@@ -80,7 +80,7 @@
     - URL
     - Payload
 - Schema
-    - id - 主键，自动生成
+    - id - 主键
     - string - 原始字符串
     - vector - 对应的向量
     - account - 研判人员
@@ -356,3 +356,8 @@
         	"ids": [1, 2]
         }'
         ```
+
+#### 启动命令
+```bash
+uvicorn api:app --reload
+```
