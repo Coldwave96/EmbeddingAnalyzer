@@ -109,3 +109,18 @@ async def upsert(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return res
+
+@app.post("/delete")
+async def delete(request: Request):
+    try:
+        json_post = await request.json()
+        collection_name = json_post["type"]
+        ids = json_post["ids"]
+
+        res = client.delete(
+            collection_name = collection_name,
+            ids = ids
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500)
+    return res
