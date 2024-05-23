@@ -23,7 +23,7 @@ ENV DEVICE cpu
 ENV MILVUS_URI http://localhost:19530
 
 # 指定
-ENV NAME_LIST ["command", "url", "payload"]
+ENV NAME_LIST ["command", "http_ext", "payload"]
 
 # 运行容器时的命令及其参数
 ENTRYPOINT ["uvicorn", "api:app", "--reload"]

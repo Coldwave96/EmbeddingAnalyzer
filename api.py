@@ -7,8 +7,8 @@ from pymilvus import MilvusClient
 import utils
 
 device = os.environ.get('DEVICE', 'cpu')
-milvus_uri = os.environ.get('MILVUS_URI', "http://192.168.89.129:19530")
-name_list = os.environ.get("NAME_LIST", ["command", "url", "payload"])
+milvus_uri = os.environ.get('MILVUS_URI', "http://localhost:19530")
+name_list = os.environ.get("NAME_LIST", ["command", "http_ext", "payload"])
 
 app = FastAPI()
 
