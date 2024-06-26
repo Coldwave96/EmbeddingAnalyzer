@@ -359,5 +359,5 @@
 
 #### 启动命令
 ```bash
-uvicorn api:app --reload
+uvicorn api:app --reload --host 0.0.0.0 --port 8000
 ```
